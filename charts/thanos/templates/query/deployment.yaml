@@ -151,7 +151,7 @@ spec:
             {{- if and .Values.ruler.enabled .Values.query.dnsDiscovery.enabled }}
             - --endpoint=dnssrv+_grpc._tcp.{{ include "thanos.ruler.fullname" . }}{{ if .Values.ruler.service.additionalHeadless }}-headless{{ end }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}
             {{- end }}
-            {{- if and (hasKey .Values "receive") .Values.receive.enabled .Values.query.dnsDiscovery.enabled }}
+            {{- if and (hasKey .Values "receive") (hasKey .Values.receive "enabled") .Values.receive.enabled .Values.query.dnsDiscovery.enabled }}
             - --endpoint=dnssrv+_grpc._tcp.{{ include "thanos.receive.fullname" . }}{{ if .Values.receive.service.additionalHeadless }}-headless{{ end }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}
             {{- end }}
             {{- range .Values.query.stores }}
