@@ -1,0 +1,192 @@
+name: Release Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # 允許手動觸發
+
+jobs:
+  detect-charts:
+    runs-on: ubuntu-latest
+    outputs:
+      charts: ${{ steps.set-charts.outputs.charts }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Detect changed charts
+        id: changed-charts
+        run: |
+          chmod +x scripts/detect-changed-charts.sh
+          CHANGED_CHARTS=$(./scripts/detect-changed-charts.sh)
+          
+          if [ -z "$CHANGED_CHARTS" ]; then
+            echo "No charts changed, skipping release"
+            echo "charts=[]" >> $GITHUB_OUTPUT
+          else
+            # 將 chart 列表轉換為 JSON 陣列格式
+            CHARTS_JSON=$(echo "$CHANGED_CHARTS" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "charts=$CHARTS_JSON" >> $GITHUB_OUTPUT
+            echo "Changed charts detected:"
+            echo "$CHANGED_CHARTS"
+          fi
+
+      - name: Set charts output
+        id: set-charts
+        run: |
+          if [ "${{ steps.changed-charts.outputs.charts }}" == "[]" ]; then
+            echo "charts=[]" >> $GITHUB_OUTPUT
+          else
+            echo "charts=${{ steps.changed-charts.outputs.charts }}" >> $GITHUB_OUTPUT
+          fi
+
+  release:
+    needs: detect-charts
+    if: needs.detect-charts.outputs.charts != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 需要寫入權限來創建 release
+    
+    strategy:
+      matrix:
+        chart: ${{ fromJson(needs.detect-charts.outputs.charts) }}
+      fail-fast: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Validate chart directory
+        run: |
+          CHART_NAME="${{ matrix.chart }}"
+          CHART_PATH="charts/$CHART_NAME"
+          if [ ! -d "$CHART_PATH" ]; then
+            echo "Error: Chart directory '$CHART_PATH' does not exist"
+            exit 1
+          fi
+          if [ ! -f "$CHART_PATH/Chart.yaml" ]; then
+            echo "Error: Chart.yaml not found in '$CHART_PATH' directory"
+            exit 1
+          fi
+          echo "Chart directory validated: $CHART_PATH"
+
+      - name: Get chart metadata and version
+        id: chart_metadata
+        run: |
+          CHART_NAME="${{ matrix.chart }}"
+          CHART_PATH="charts/$CHART_NAME"
+          cd "$CHART_PATH"
+          
+          # 從 Chart.yaml 讀取所有資訊
+          CHART_NAME_FROM_YAML=$(yq eval '.name' Chart.yaml)
+          CHART_VERSION=$(yq eval '.version' Chart.yaml)
+          CHART_DESCRIPTION=$(yq eval '.description // "Helm Chart"' Chart.yaml)
+          APP_VERSION=$(yq eval '.appVersion // ""' Chart.yaml)
+          
+          if [ -z "$CHART_VERSION" ]; then
+            echo "Error: Version not found in Chart.yaml"
+            exit 1
+          fi
+          
+          echo "chart_name_from_yaml=$CHART_NAME_FROM_YAML" >> $GITHUB_OUTPUT
+          echo "chart_version=$CHART_VERSION" >> $GITHUB_OUTPUT
+          echo "chart_description=$CHART_DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=${CHART_NAME_FROM_YAML}-${CHART_VERSION}" >> $GITHUB_OUTPUT
+          
+          echo "Chart: $CHART_NAME_FROM_YAML"
+          echo "Version: $CHART_VERSION"
+          echo "App Version: $APP_VERSION"
+          
+          # 驗證目錄名稱和 Chart.yaml 中的名稱是否一致
+          if [ "$CHART_NAME_FROM_YAML" != "$CHART_NAME" ]; then
+            echo "Warning: Directory name '$CHART_NAME' does not match chart name in Chart.yaml '$CHART_NAME_FROM_YAML'"
+          fi
+
+      - name: Check if release already exists
+        id: check_release
+        run: |
+          TAG="${{ steps.chart_metadata.outputs.tag }}"
+          # 檢查 tag 是否已存在
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Release tag $TAG already exists, skipping release"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Release tag $TAG does not exist, will create new release"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Lint chart
+        if: steps.check_release.outputs.exists != 'true'
+        run: |
+          CHART_NAME="${{ matrix.chart }}"
+          CHART_PATH="charts/$CHART_NAME"
+          cd "$CHART_PATH"
+          helm lint .
+
+      - name: Package chart
+        if: steps.check_release.outputs.exists != 'true'
+        id: package
+        run: |
+          CHART_NAME="${{ matrix.chart }}"
+          CHART_PATH="charts/$CHART_NAME"
+          mkdir -p packages
+          cd "$CHART_PATH"
+          helm package . --destination ../../packages
+          CHART_FILE=$(ls ../../packages/${CHART_NAME}-*.tgz | head -1)
+          echo "chart_file=$CHART_FILE" >> $GITHUB_OUTPUT
+          echo "chart_name=$(basename $CHART_FILE)" >> $GITHUB_OUTPUT
+          echo "Chart packaged: $CHART_FILE"
+
+      - name: Create Release
+        if: steps.check_release.outputs.exists != 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.chart_metadata.outputs.tag }}
+          name: ${{ steps.chart_metadata.outputs.chart_name_from_yaml }} ${{ steps.chart_metadata.outputs.chart_version }}
+          body: |
+            Helm Chart Release: **${{ steps.chart_metadata.outputs.chart_name_from_yaml }}**
+            
+            **Chart Version:** ${{ steps.chart_metadata.outputs.chart_version }}
+            ${{ steps.chart_metadata.outputs.app_version && format('**App Version:** {0}', steps.chart_metadata.outputs.app_version) || '' }}
+            
+            **Description:** ${{ steps.chart_metadata.outputs.chart_description }}
+            
+            ## Installation
+            
+            ```bash
+            helm repo add <your-repo-name> <your-repo-url>
+            helm install ${{ steps.chart_metadata.outputs.chart_name_from_yaml }} <your-repo-name>/${{ steps.chart_metadata.outputs.chart_name_from_yaml }}
+            ```
+          files: |
+            ${{ steps.package.outputs.chart_file }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip release message
+        if: steps.check_release.outputs.exists == 'true'
+        run: |
+          echo "Release ${{ steps.chart_metadata.outputs.tag }} already exists, skipping..."
