@@ -273,6 +273,10 @@ jobs:
         run: |
           cp artifacthub-repo.yml publish/
 
+      - name: Copy README.md
+        run: |
+          cp README.md publish/
+
       - name: Generate index.yaml
         run: |
           cd publish
