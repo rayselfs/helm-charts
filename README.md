@@ -1,84 +1,82 @@
 # Helm Charts Repository
 
-本倉庫包含多個 Helm Charts，用於部署各種 Kubernetes 應用程式。
+This repository contains multiple Helm Charts for deploying various Kubernetes applications.
 
-## 📦 可用的 Charts
+## 📦 Available Charts
 
 - **thanos** - Managed Thanos deployment for compactor, query, query-frontend and storegateway components
 
-## 🚀 快速開始
+## 🚀 Quick Start
 
-### 安裝 Chart
+### Install Chart
 
 ```bash
-# 添加倉庫（請替換為實際的倉庫 URL）
+# Add repository (replace with your actual repository URL)
 helm repo add <repo-name> <repo-url>
 helm repo update
 
-# 安裝 chart
+# Install chart
 helm install <release-name> <repo-name>/<chart-name>
 ```
 
-### 範例：安裝 Thanos
+### Example: Install Thanos
 
 ```bash
 helm repo add my-charts https://github.com/YOUR_ORG/helm-charts/releases/download/thanos-0.1.0/
 helm install thanos my-charts/thanos
 ```
 
-## 📁 資料夾結構
+## 📁 Folder Structure
 
-本倉庫採用統一結構，所有 Helm Charts 位於 `charts/` 目錄下：
+This repository uses a unified structure where all Helm Charts are located under the `charts/` directory:
 
 ```
 helm-charts/
 ├── .github/
 │   └── workflows/
-│       └── release.yml          # GitHub Actions 自動化工作流程
-├── scripts/
-│   └── detect-changed-charts.sh  # 偵測修改的 charts 腳本
-├── charts/                       # 所有 Helm Charts 目錄
+│       └── release.yml          # GitHub Actions automation workflow
+├── charts/                       # All Helm Charts directory
 │   ├── thanos/                  # Thanos Helm Chart
 │   │   ├── Chart.yaml
 │   │   ├── values.yaml
 │   │   └── templates/
-│   ├── prometheus/              # Prometheus Helm Chart (範例)
+│   ├── prometheus/              # Prometheus Helm Chart (example)
 │   │   ├── Chart.yaml
 │   │   ├── values.yaml
 │   │   └── templates/
-│   └── <chart-name>/            # 其他 Helm Charts
+│   └── <chart-name>/            # Other Helm Charts
 │       ├── Chart.yaml
 │       ├── values.yaml
 │       └── templates/
-├── artifacthub-repo.yml         # Artifact Hub 配置
-└── README.md                     # 本文件
+├── artifacthub-repo.yml         # Artifact Hub configuration
+└── README.md                     # This file
 ```
 
-## ➕ 新增 Helm Chart
+## ➕ Adding a New Helm Chart
 
-### 1. 創建 Chart 目錄
+### 1. Create Chart Directory
 
-在 `charts/` 目錄下創建新的資料夾，名稱應與 Chart.yaml 中的 `name` 欄位一致：
+Create a new folder under the `charts/` directory. The folder name should match the `name` field in Chart.yaml:
 
 ```bash
 mkdir -p charts/<chart-name>
 cd charts/<chart-name>
 ```
 
-### 2. 初始化 Chart
+### 2. Initialize Chart
 
-使用 Helm 創建新的 chart：
+Create a new chart using Helm:
 
 ```bash
 helm create <chart-name>
 ```
 
-或者手動創建必要的文件：
-- `Chart.yaml` - Chart 元數據
-- `values.yaml` - 預設配置值
-- `templates/` - Kubernetes 模板文件目錄
+Or manually create the necessary files:
+- `Chart.yaml` - Chart metadata
+- `values.yaml` - Default configuration values
+- `templates/` - Kubernetes template files directory
 
-### 3. Chart.yaml 範例
+### 3. Chart.yaml Example
 
 ```yaml
 apiVersion: v2
@@ -96,47 +94,47 @@ sources:
   - https://github.com/example/repo
 ```
 
-### 4. 重要注意事項
+### 4. Important Notes
 
-- **目錄名稱必須與 Chart.yaml 中的 `name` 欄位一致**
-- 每個 chart 必須包含有效的 `Chart.yaml` 文件
-- 版本號應遵循[語義化版本](https://semver.org/)規範
-- **版本號需要手動更新**：在提交前記得更新 Chart.yaml 中的 `version` 欄位
-- 所有 charts 必須位於 `charts/` 目錄下
+- **Directory name must match the `name` field in Chart.yaml**
+- Each chart must contain a valid `Chart.yaml` file
+- Version numbers should follow [Semantic Versioning](https://semver.org/) specification
+- **Version numbers need to be manually updated**: Remember to update the `version` field in Chart.yaml before committing
+- All charts must be located under the `charts/` directory
 
-## 🔄 發布新版本
+## 🔄 Publishing New Versions
 
-### 自動發布（推薦）
+### Automatic Publishing (Recommended)
 
-當你推送代碼到 `main` 分支時，GitHub Actions 會**自動偵測修改的 charts**並從 `Chart.yaml` 中讀取版本號來發布。
+When you push code to the `main` branch, GitHub Actions will **automatically detect modified charts** and read the version number from `Chart.yaml` to publish.
 
-**發布流程：**
+**Publishing Process:**
 
 ```bash
-# 1. 更新 Chart.yaml 中的版本號
-vim charts/thanos/Chart.yaml  # 修改 version: 0.1.0 -> 0.1.1
+# 1. Update version number in Chart.yaml
+vim charts/thanos/Chart.yaml  # Change version: 0.1.0 -> 0.1.1
 
-# 2. 修改 chart 文件
-# ... 進行你的修改 ...
+# 2. Modify chart files
+# ... make your changes ...
 
-# 3. 提交並推送
+# 3. Commit and push
 git add charts/thanos/
 git commit -m "Update thanos chart to v0.1.1"
 git push origin main
 
-# 4. GitHub Actions 會自動偵測並發布
+# 4. GitHub Actions will automatically detect and publish
 ```
 
-**重要提示：**
-- ✅ 工作流程會**自動偵測**哪些 charts 有修改
-- ✅ 版本號從 `Chart.yaml` 的 `version` 欄位**讀取**（不會自動更新）
-- ✅ 需要在提交前**手動更新** Chart.yaml 中的版本號
-- ✅ 可以同時發布多個修改的 charts（並行處理）
-- ⚠️ 如果相同版本的 release 已存在，會自動跳過
+**Important Notes:**
+- ✅ The workflow will **automatically detect** which charts have been modified
+- ✅ Version numbers are **read** from the `version` field in `Chart.yaml` (not automatically updated)
+- ✅ You need to **manually update** the version number in Chart.yaml before committing
+- ✅ Multiple modified charts can be published simultaneously (parallel processing)
+- ⚠️ If a release with the same version already exists, it will be automatically skipped
 
-**範例：同時發布多個 charts**
+**Example: Publishing Multiple Charts Simultaneously**
 ```bash
-# 修改了 thanos 和 prometheus
+# Modified thanos and prometheus
 vim charts/thanos/Chart.yaml      # version: 0.1.0 -> 0.1.1
 vim charts/prometheus/Chart.yaml  # version: 1.0.0 -> 1.0.1
 
@@ -144,75 +142,77 @@ git add charts/thanos/ charts/prometheus/
 git commit -m "Update multiple charts"
 git push origin main
 
-# 工作流程會自動偵測並並行發布兩個 charts
+# The workflow will automatically detect and publish both charts in parallel
 ```
 
-### 手動觸發
+### Manual Trigger
 
-1. 前往 [GitHub Actions](https://github.com/YOUR_ORG/helm-charts/actions)
-2. 選擇 "Release Helm Chart" 工作流程
-3. 點擊 "Run workflow"
-4. 工作流程會自動偵測所有修改的 charts
+1. Go to [GitHub Actions](https://github.com/YOUR_ORG/helm-charts/actions)
+2. Select the "Release Helm Chart" workflow
+3. Click "Run workflow"
+4. The workflow will automatically detect all modified charts
 
-## 🔧 工作流程說明
+## 🔧 Workflow Description
 
-GitHub Actions 工作流程包含兩個 jobs：
+The GitHub Actions workflow consists of two jobs:
 
 ### Job 1: detect-charts
-1. 檢出代碼（包含完整 git 歷史）
-2. 執行 `scripts/detect-changed-charts.sh` 偵測修改的 charts
-3. 比較當前 commit 與基礎分支的差異
-4. 輸出修改的 charts 列表（JSON 格式）
+1. Checkout code (with full git history)
+2. Scan all charts under the `charts/` directory
+3. For each chart:
+   - Read `name` and `version` from `Chart.yaml`
+   - Check if release tag `<name>-<version>` already exists
+   - If the tag doesn't exist, add it to the release list
+4. Output the list of charts to be released (JSON format)
 
 ### Job 2: release (Matrix Strategy)
-對每個修改的 chart 並行執行：
+For each modified chart, execute in parallel:
 
-1. 驗證 chart 目錄和 Chart.yaml 存在（位於 `charts/<chart-name>/`）
-2. **從 Chart.yaml 讀取版本號**（不會自動更新）
-3. 檢查 release tag 是否已存在
-4. 執行 `helm lint` 檢查
-5. 打包 chart 為 `.tgz` 文件
-6. 創建 GitHub Release 並上傳打包的 chart
-   - Tag 格式：`<chart-name>-<version>`（例如：`thanos-0.1.1`）
+1. Validate chart directory and Chart.yaml exist (located at `charts/<chart-name>/`)
+2. **Read version number from Chart.yaml** (not automatically updated)
+3. Check if release tag already exists
+4. Run `helm lint` check
+5. Package chart as `.tgz` file
+6. Create GitHub Release and upload the packaged chart
+   - Tag format: `<chart-name>-<version>` (e.g., `thanos-0.1.1`)
 
-### 偵測邏輯
+### Detection Logic
 
-`scripts/detect-changed-charts.sh` 會：
+The workflow will:
 
-- 比較當前 commit 與 `origin/main` 的差異
-- 遍歷所有修改的檔案
-- 只處理 `charts/` 目錄下的檔案
-- 提取檔案的第二個路徑段作為 chart 目錄名稱（例如：`charts/thanos/templates/deployment.yaml` → `thanos`）
-- 驗證該目錄包含 `Chart.yaml` 文件
-- 過濾掉非 chart 相關的檔案（.github/, scripts/, *.md 等）
-- 輸出所有修改的 chart 名稱（每行一個）
+- **Directly scan all charts**: Iterate through all subdirectories under `charts/`
+- **Check Chart.yaml**: Verify each directory contains a valid `Chart.yaml` file
+- **Read version information**: Read `name` and `version` fields from `Chart.yaml`
+- **Check existing releases**: Use GitHub CLI to check if release `<name>-<version>` already exists
+- **Filter published versions**: If a release with that version already exists, skip that chart
+- **Support first-time publishing**: Can correctly handle the first publish even without git history
 
-## 🔗 Artifact Hub 集成
+## 🔗 Artifact Hub Integration
 
-發布完成後，Artifact Hub 會自動從 GitHub Releases 中索引你的 charts。
+After publishing, Artifact Hub will automatically index your charts from GitHub Releases.
 
-### 在 Artifact Hub 註冊
+### Register on Artifact Hub
 
-1. 訪問 [Artifact Hub](https://artifacthub.io/)
-2. 登錄並點擊 "Add repository"
-3. 選擇 "Helm" 類型
-4. 填寫倉庫信息：
+1. Visit [Artifact Hub](https://artifacthub.io/)
+2. Log in and click "Add repository"
+3. Select "Helm" type
+4. Fill in repository information:
    - **Repository URL**: `https://github.com/YOUR_ORG/YOUR_REPO`
-   - **Repository name**: 你的倉庫名稱
-5. Artifact Hub 會自動從 GitHub Releases 中索引所有發布的 charts
+   - **Repository name**: Your repository name
+5. Artifact Hub will automatically index all published charts from GitHub Releases
 
-## 📚 詳細文檔
+## 📚 Detailed Documentation
 
-- [GitHub Actions 工作流程說明](.github/workflows/README.md) - 自動化發布流程詳情
+- [GitHub Actions Workflow Documentation](.github/workflows/README.md) - Details about the automated publishing process
 
-## 🤝 貢獻
+## 🤝 Contributing
 
-歡迎貢獻新的 Helm Charts！
+Contributions of new Helm Charts are welcome!
 
-1. 在 `charts/` 目錄下創建新的 chart 目錄
-2. 確保目錄名稱與 Chart.yaml 中的 `name` 欄位一致
-3. 提交 Pull Request
+1. Create a new chart directory under `charts/`
+2. Ensure the directory name matches the `name` field in Chart.yaml
+3. Submit a Pull Request
 
-## 📝 授權
+## 📝 License
 
-本專案採用 [Apache License 2.0](LICENSE) 授權。
+This project is licensed under the [Apache License 2.0](LICENSE).

@@ -4,56 +4,99 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:  # 允許手動觸發
+  workflow_dispatch:
 
 jobs:
   detect-charts:
     runs-on: ubuntu-latest
     outputs:
-      charts: ${{ steps.set-charts.outputs.charts }}
+      charts: ${{ steps.detect-charts.outputs.charts }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
       - name: Install jq
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
 
-      - name: Detect changed charts
-        id: changed-charts
+      - name: Install GitHub CLI
         run: |
-          chmod +x scripts/detect-changed-charts.sh
-          CHANGED_CHARTS=$(./scripts/detect-changed-charts.sh)
+          type -p curl >/dev/null || (apt-get update && apt-get install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && apt-get update \
+          && apt-get install gh -y
+
+      - name: Detect charts to release
+        id: detect-charts # This ID is important for outputs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CHARTS_TO_RELEASE=()
           
-          if [ -z "$CHANGED_CHARTS" ]; then
-            echo "No charts changed, skipping release"
+          # 掃描 charts/ 目錄下的所有 chart
+          for chart_dir in charts/*/; do
+            # 移除尾部的斜線，獲取 chart 名稱
+            chart_name=$(basename "$chart_dir")
+            chart_path="charts/$chart_name"
+            
+            # 檢查是否為有效的 chart 目錄（包含 Chart.yaml）
+            if [ ! -f "$chart_path/Chart.yaml" ]; then
+              echo "Skipping $chart_path: Chart.yaml not found"
+              continue
+            fi
+            
+            # 讀取 Chart.yaml 的 name 和 version
+            chart_name_from_yaml=$(yq eval '.name' "$chart_path/Chart.yaml")
+            chart_version=$(yq eval '.version' "$chart_path/Chart.yaml")
+            
+            if [ -z "$chart_name_from_yaml" ] || [ -z "$chart_version" ]; then
+              echo "Skipping $chart_path: Missing name or version in Chart.yaml"
+              continue
+            fi
+            
+            # 構建 tag 名稱
+            tag="${chart_name_from_yaml}-${chart_version}"
+            
+            # 檢查 GitHub Release 是否已存在
+            if gh release view "$tag" >/dev/null 2>&1; then
+              echo "Skipping $chart_name: Release $tag already exists"
+              continue
+            fi
+            
+            # 加入發布列表
+            CHARTS_TO_RELEASE+=("$chart_name")
+            echo "Will release: $chart_name (version: $chart_version, tag: $tag)"
+          done
+          
+          # 將 chart 列表轉換為 JSON 陣列格式
+          if [ ${#CHARTS_TO_RELEASE[@]} -eq 0 ]; then
+            echo "No charts to release"
             echo "charts=[]" >> $GITHUB_OUTPUT
           else
-            # 將 chart 列表轉換為 JSON 陣列格式
-            CHARTS_JSON=$(echo "$CHANGED_CHARTS" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            CHARTS_JSON=$(printf '%s\n' "${CHARTS_TO_RELEASE[@]}" | jq -R -s -c 'split("\n") | map(select(length > 0))')
             echo "charts=$CHARTS_JSON" >> $GITHUB_OUTPUT
-            echo "Changed charts detected:"
-            echo "$CHANGED_CHARTS"
+            echo "Charts to release:"
+            printf '%s\n' "${CHARTS_TO_RELEASE[@]}"
           fi
 
-      - name: Set charts output
-        id: set-charts
-        run: |
-          if [ "${{ steps.changed-charts.outputs.charts }}" == "[]" ]; then
-            echo "charts=[]" >> $GITHUB_OUTPUT
-          else
-            echo "charts=${{ steps.changed-charts.outputs.charts }}" >> $GITHUB_OUTPUT
-          fi
+      # [Optimization] Removed 'Set charts output' step since 'detect-charts' step already outputs the result.
 
   release:
     needs: detect-charts
     if: needs.detect-charts.outputs.charts != '[]'
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 需要寫入權限來創建 release
+      contents: write  # Required permission to create releases
     
     strategy:
       matrix:
@@ -123,16 +166,27 @@ jobs:
             echo "Warning: Directory name '$CHART_NAME' does not match chart name in Chart.yaml '$CHART_NAME_FROM_YAML'"
           fi
 
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || (apt-get update && apt-get install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && apt-get update \
+          && apt-get install gh -y
+
       - name: Check if release already exists
         id: check_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ steps.chart_metadata.outputs.tag }}"
-          # 檢查 tag 是否已存在
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Release tag $TAG already exists, skipping release"
+          # 檢查 GitHub Release 是否已存在
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping release"
             echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "Release tag $TAG does not exist, will create new release"
+            echo "Release $TAG does not exist, will create new release"
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
@@ -148,12 +202,31 @@ jobs:
         if: steps.check_release.outputs.exists != 'true'
         id: package
         run: |
-          CHART_NAME="${{ matrix.chart }}"
-          CHART_PATH="charts/$CHART_NAME"
+          # Get directory name from matrix
+          CHART_DIR_NAME="${{ matrix.chart }}"
+          CHART_PATH="charts/$CHART_DIR_NAME"
+          
+          # Get 'name' from Chart.yaml via 'chart_metadata' step
+          CHART_NAME_FROM_YAML="${{ steps.chart_metadata.outputs.chart_name_from_yaml }}"
+          
           mkdir -p packages
           cd "$CHART_PATH"
+          
+          # helm package uses the 'name' from Chart.yaml to name the file
           helm package . --destination ../../packages
-          CHART_FILE=$(ls ../../packages/${CHART_NAME}-*.tgz | head -1)
+          
+          # Use $CHART_NAME_FROM_YAML (from Chart.yaml) to find the correct file
+          CHART_FILE=$(ls ../../packages/${CHART_NAME_FROM_YAML}-*.tgz | head -1)
+          
+          # Add error check to ensure file is found
+          if [ -z "$CHART_FILE" ]; then
+            echo "Error: Could not find packaged chart file!"
+            echo "Looked for: ../../packages/${CHART_NAME_FROM_YAML}-*.tgz"
+            echo "Files in packages dir:"
+            ls -l ../../packages/
+            exit 1
+          fi
+          
           echo "chart_file=$CHART_FILE" >> $GITHUB_OUTPUT
           echo "chart_name=$(basename $CHART_FILE)" >> $GITHUB_OUTPUT
           echo "Chart packaged: $CHART_FILE"
