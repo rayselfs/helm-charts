@@ -1,9 +1,0 @@
-# repositoryID: # Leave blank initially, Artifact Hub will generate it after first registration
-repositoryID: ff28c70a-d437-4f09-9abd-f65eb3cd0444
-owners:
-  - name: Ray Chang
-    email: rayselfs@gmail.com
-displayName: Helm Charts Repository
-description: A collection of Helm charts for various Kubernetes applications
-homeURL: https://github.com/rayselfs/helm-charts  # TODO: Update with your actual GitHub username/org
-logoURL: https://avatars.githubusercontent.com/u/49725059?v=4
