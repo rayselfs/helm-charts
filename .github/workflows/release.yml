@@ -224,15 +224,6 @@ jobs:
             
             **Chart Version:** ${{ steps.chart_metadata.outputs.chart_version }}
             ${{ steps.chart_metadata.outputs.app_version && format('**App Version:** {0}', steps.chart_metadata.outputs.app_version) || '' }}
-            
-            **Description:** ${{ steps.chart_metadata.outputs.chart_description }}
-            
-            ## Installation
-            
-            ```bash
-            helm repo add <your-repo-name> <your-repo-url>
-            helm install ${{ steps.chart_metadata.outputs.chart_name_from_yaml }} <your-repo-name>/${{ steps.chart_metadata.outputs.chart_name_from_yaml }}
-            ```
           files: |
             ${{ steps.package.outputs.chart_file }}
           draft: false

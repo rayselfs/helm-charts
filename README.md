@@ -189,17 +189,48 @@ The workflow will:
 
 ## 🔗 Artifact Hub Integration
 
-After publishing, Artifact Hub will automatically index your charts from GitHub Releases.
+This repository is configured to work with Artifact Hub. Charts are automatically published to GitHub Pages and can be indexed by Artifact Hub.
 
-### Register on Artifact Hub
+### Setup Instructions
+
+#### 1. Update artifacthub-repo.yml
+
+Edit `artifacthub-repo.yml` in the root directory and update:
+- `owners[0].email`: Your email address
+- `homeURL`: Your GitHub repository URL (e.g., `https://github.com/YOUR_USERNAME/helm-charts`)
+- `logoURL`: Your GitHub avatar URL (replace `<github_user_id>` with your GitHub user ID)
+
+**Note**: Leave `repositoryID` blank initially. Artifact Hub will generate it after first registration.
+
+#### 2. Enable GitHub Pages
+
+1. Go to your repository → ⚙️ **Settings** → **Pages**
+2. Configure:
+   - **Source**: Deploy from a branch
+   - **Branch**: `gh-pages` (or `main`), **Folder**: `/ (root)**
+3. Save and wait for GitHub Pages to be enabled
+4. You'll get a URL like: `https://YOUR_USERNAME.github.io/helm-charts`
+
+#### 3. Verify GitHub Pages
+
+After the first workflow run, verify you can access:
+- `https://YOUR_USERNAME.github.io/helm-charts/index.yaml`
+
+#### 4. Register on Artifact Hub
 
 1. Visit [Artifact Hub](https://artifacthub.io/)
-2. Log in and click "Add repository"
-3. Select "Helm" type
-4. Fill in repository information:
-   - **Repository URL**: `https://github.com/YOUR_ORG/YOUR_REPO`
-   - **Repository name**: Your repository name
-5. Artifact Hub will automatically index all published charts from GitHub Releases
+2. Log in with your GitHub account
+3. Click your profile icon → **Control Panel** → **Repositories** → **Add repository**
+4. Fill in:
+   - **Kind**: Helm
+   - **URL**: `https://YOUR_USERNAME.github.io/helm-charts`
+   - **Repository name**: e.g., `your-charts`
+   - **Public**: ✅ (if you want it public)
+5. After saving, Artifact Hub will generate a `repositoryID`
+6. **Important**: Copy the `repositoryID` and update it in `artifacthub-repo.yml`
+7. Commit and push the updated `artifacthub-repo.yml`
+
+Artifact Hub will automatically sync and index your charts from GitHub Pages.
 
 ## 📚 Detailed Documentation
 

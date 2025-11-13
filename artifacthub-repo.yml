@@ -1,41 +1,8 @@
-# Artifact Hub repository configuration file
-# See https://artifacthub.io/docs/topics/repositories/
-
-# Repository ID (unique identifier for your repository)
-repositoryID: ""
-
-# Repository name (display name in Artifact Hub)
-name: "Helm Charts"
-
-# Repository URL (GitHub repository URL)
-# 請更新為你的實際 GitHub 倉庫 URL
-url: "https://github.com/YOUR_ORG/YOUR_REPO"
-
-# Repository type
-# Options: helm, falco, opa, olm, tbaction, krew, tekton, kedacore, golang, inspektor-gadget, tekton-pipeline, meshery, kubewarden, gatekeeper, kyverno, cnab, hadolint, kubearmor, knative-client-plugin, backstage, argo-templates, kube-armor, keda-scaler, coredns, kubectl, keptn, ortektoncd
-type: helm
-
-# Display name (optional, defaults to name)
-displayName: "Helm Charts Repository"
-
-# Description (optional)
-description: "A collection of Helm charts for various Kubernetes applications"
-
-# Logo URL (optional)
-# logoURL: "https://example.com/logo.png"
-
-# Home URL (optional)
-# homeURL: "https://example.com"
-
-# Keywords (optional)
-keywords:
-  - helm
-  - kubernetes
-  - charts
-  - thanos
-  - prometheus
-  - observability
-
-# Alternative names (optional)
-# alternativeName: "Charts"
-
+# repositoryID: # Leave blank initially, Artifact Hub will generate it after first registration
+owners:
+  - name: Ray Chang
+    email: rayselfs@gmail.com
+displayName: Helm Charts Repository
+description: A collection of Helm charts for various Kubernetes applications
+homeURL: https://github.com/rayselfs/helm-charts  # TODO: Update with your actual GitHub username/org
+logoURL: https://avatars.githubusercontent.com/u/49725059?v=4
