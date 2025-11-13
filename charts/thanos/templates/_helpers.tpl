@@ -75,14 +75,6 @@ app.kubernetes.io/name: {{ include "thanos.name" . }}
 {{- end -}}
 {{- end -}}
 
-{{- define "thanos.objectStoreSecretName" -}}
-{{- if .Values.objectStore.secretName -}}
-{{- tpl .Values.objectStore.secretName . -}}
-{{- else -}}
-{{- printf "%s-objstore" (include "thanos.fullname" .) -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "thanos.image" -}}
 {{- $img := .Values.image -}}
 {{- $registry := default "" $img.registry -}}
