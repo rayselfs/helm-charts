@@ -827,9 +827,9 @@ Compile all warnings into a single message, and call fail.
 
 {{/* Validate values of Thanos - Objstore configuration */}}
 {{- define "thanos.validateValues.objstore" -}}
-{{- if and (or (and (hasKey .Values "bucketweb") .Values.bucketweb.enabled) .Values.compactor.enabled .Values.ruler.enabled .Values.storegateway.enabled) (not (include "thanos.createObjstoreSecret" .)) ( not .Values.existingObjstoreSecret) -}}
+{{- if and (or .Values.compactor.enabled .Values.ruler.enabled .Values.storegateway.enabled) (not (include "thanos.createObjstoreSecret" .)) ( not .Values.existingObjstoreSecret) -}}
 thanos: objstore configuration
-    When enabling Bucket Web, Compactor, Ruler or Store component,
+    When enabling Compactor, Ruler or Store component,
     you must provide a valid objstore configuration.
     There are three alternatives to provide it:
       1) Provide it using the 'objstoreConfig' parameter
