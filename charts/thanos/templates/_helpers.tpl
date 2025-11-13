@@ -752,9 +752,9 @@ Create the name of the service account to use (queryFrontend)
 Create the name of the service account to use (receive)
 */}}
 {{- define "thanos.receive.serviceAccountName" -}}
-{{- if and (hasKey .Values "receive") (hasKey .Values.receive "serviceAccount") (hasKey .Values.receive.serviceAccount "create") .Values.receive.serviceAccount.create -}}
+{{- if and (hasKey .Values "receive") .Values.receive.serviceAccount.create -}}
     {{ default (include "thanos.receive.fullname" .) .Values.receive.serviceAccount.name }}
-{{- else if and (hasKey .Values "receive") (hasKey .Values.receive "serviceAccount") (hasKey .Values.receive.serviceAccount "name") -}}
+{{- else if hasKey .Values "receive" -}}
     {{ default "default" .Values.receive.serviceAccount.name }}
 {{- else -}}
     default
@@ -953,7 +953,7 @@ Return true if a hashring configmap object should be created
 Return the Thanos receive hashring configuration configmap.
 */}}
 {{- define "thanos.receive.configmapName" -}}
-{{- if and (hasKey .Values "receive") (hasKey .Values.receive "existingConfigmap") .Values.receive.existingConfigmap -}}
+{{- if .Values.receive.existingConfigmap -}}
     {{- printf "%s" (tpl .Values.receive.existingConfigmap $) -}}
 {{- else -}}
     {{- printf "%s-receive" (include "thanos.fullname" .) -}}
@@ -973,12 +973,12 @@ Usage:
 {{ include "thanos.receive.config" . }}
 */}}
 {{- define "thanos.receive.config" -}}
-{{- if and (hasKey .Values "receive") (not (hasKey .Values.receive "existingConfigmap") or (not .Values.receive.existingConfigmap)) -}}
-{{- if not (hasKey .Values.receive "config") or (not .Values.receive.config) -}}
+{{- if not .Values.receive.existingConfigmap }}
+{{- if not .Values.receive.config -}}
 {{- $endpoints_list := list -}}
 {{- $grpc_port := int .Values.receive.containerPorts.grpc -}}
 {{- $capnproto_port := int .Values.receive.containerPorts.capnproto -}}
-{{- if and (hasKey .Values.receive "service") (hasKey .Values.receive.service "additionalHeadless") .Values.receive.service.additionalHeadless -}}
+{{- if .Values.receive.service.additionalHeadless -}}
 {{- $count := int .Values.receive.replicaCount -}}
 {{- $root := . -}}
 {{- range $i := until $count -}}
