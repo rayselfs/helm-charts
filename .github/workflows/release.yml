@@ -259,17 +259,24 @@ jobs:
 
       - name: Package all charts
         run: |
-          # Package all charts to root directory
+          # Create publish directory
+          mkdir -p publish
+          # Package all charts to publish directory
           for chart_dir in charts/*/; do
             chart_name=$(basename "$chart_dir")
             if [ -f "$chart_dir/Chart.yaml" ]; then
               echo "Packaging $chart_name..."
-              helm package "$chart_dir" --destination .
+              helm package "$chart_dir" --destination publish
             fi
           done
 
+      - name: Copy artifacthub-repo.yml
+        run: |
+          cp artifacthub-repo.yml publish/
+
       - name: Generate index.yaml
         run: |
+          cd publish
           # Generate index.yaml with the GitHub Pages URL
           helm repo index . --url https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
 
@@ -277,13 +284,6 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
+          publish_dir: publish
           destination_dir: .
-          exclude_assets: |
-            .git
-            .github
-            charts
-            scripts
-            README.md
-            LICENSE
-            packages
+          cname: false

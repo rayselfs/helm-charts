@@ -2,7 +2,7 @@ apiVersion: v2
 name: thanos
 description: Managed Thanos deployment for compactor, query, query-frontend and storegateway components.
 type: application
-version: 0.1.2
+version: 0.1.3
 appVersion: 0.40.1
 home: https://thanos.io
 icon: https://thanos.io/static/favicon.png
