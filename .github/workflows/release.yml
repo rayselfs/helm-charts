@@ -245,11 +245,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Required to push to gh-pages branch
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -286,9 +281,8 @@ jobs:
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
-        id: deployment
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: publish
           destination_dir: .
-          cname: false
+          publish_branch: gh-pages  # Deploy to gh-pages branch for "Deploy from a branch" mode
