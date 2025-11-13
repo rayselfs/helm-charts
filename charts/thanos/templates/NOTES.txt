@@ -9,8 +9,8 @@ Thanos chart was deployed enabling the following components:
 {{- if .Values.query.enabled }}
 - Thanos Query
 {{- end }}
-{{- if and (hasKey .Values "bucketweb") .Values.bucketweb.enabled }}
-- Thanos Bucket Web
+{{- if .Values.queryFrontend.enabled }}
+- Thanos Query Frontend
 {{- end }}
 {{- if .Values.compactor.enabled }}
 - Thanos Compactor
@@ -76,6 +76,6 @@ WARNING: You deployed Thanos without enabling Thanos Query!!
 
 {{- include "thanos.validateValues" . }}
 {{- include "thanos.checkRollingTags" . }}
-{{- include "common.warnings.resources" (dict "sections" (list "bucketweb" "compactor" "query" "queryFrontend" "receive" "receiveDistributor" "ruler" "storegateway") "context" $) }}
+{{- include "common.warnings.resources" (dict "sections" (list "compactor" "query" "queryFrontend" "receive" "receiveDistributor" "ruler" "storegateway") "context" $) }}
 {{- include "common.warnings.modifiedImages" (dict "images" (list .Values.image .Values.volumePermissions.image) "context" $) }}
 {{- include "common.errors.insecureImages" (dict "images" (list .Values.image .Values.volumePermissions.image) "context" $) }}
