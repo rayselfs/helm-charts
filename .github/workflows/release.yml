@@ -1,16 +1,12 @@
 name: Release Helm Chart
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-    paths-ignore:
-      - 'README.md'
-      - '**.md'
-      - '.github/**'
-      - 'LICENSE'
-      - '.gitignore'
-  workflow_dispatch:
+    paths:
+      - charts/**/Chart.yaml
 
 jobs:
   release:
