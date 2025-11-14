@@ -1,19 +1,5 @@
 # artifacthub-repo.yml
-
 repositoryID: ff28c70a-d437-4f09-9abd-f65eb3cd0444
-
-display_name: Helm Charts Repository
-
-description: A collection of Helm charts for various Kubernetes applications
-
 owners:
-  - name: Ray Chang
+  - name: rayselfs
     email: rayselfs@gmail.com
-
-logo_url: https://rayselfs.github.io/helm-charts/logo/thanos.png
-
-links:
-  - name: GitHub Source Repository
-    url: https://github.com/rayselfs/helm-charts
-  - name: Helm Repository URL
-    url: https://rayselfs.github.io/helm-charts
