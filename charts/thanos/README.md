@@ -1,19 +1,8 @@
 # Thanos Helm Chart
 
+![Version: 0.1.4](https://img.shields.io/badge/Version-0.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.40.1](https://img.shields.io/badge/AppVersion-0.40.1-informational?style=flat-square)
+
 Thanos is a highly available metrics system that can be added on top of existing Prometheus deployments, providing a global query view across all Prometheus installations.
-
-[Overview of Thanos](https://thanos.io/)
-
-## TL;DR
-
-```console
-# Add the repository
-helm repo add <repo-name> <repo-url>
-helm repo update
-
-# Install the chart
-helm install my-release <repo-name>/thanos
-```
 
 ## Introduction
 
@@ -33,45 +22,20 @@ To install the chart with the release name `my-release`:
 
 ```console
 # Add the repository
-helm repo add <repo-name> <repo-url>
+helm repo add rayselfs https://rayselfs.github.io/helm-charts
 helm repo update
 
 # Install the chart
-helm install my-release <repo-name>/thanos
+helm install my-release rayselfs/thanos
 ```
 
 These commands deploy Thanos on the Kubernetes cluster with the default configuration. The [configuration](#configuration-and-installation-details) section lists the parameters that can be configured during installation.
-
-> **Tip**: List all releases using `helm list`
 
 ## Architecture
 
 This charts allows you install several Thanos components, so you deploy an architecture as the one below:
 
-```text
-                       +--------------+                  +--------------+      +--------------+
-                       | Thanos       |----------------> | Thanos Store |      | Thanos       |
-                       | Query        |           |      | Gateway      |      | Compactor    |
-                       +--------------+           |      +--------------+      +--------------+
-                   push                           |             |                     |
-+--------------+   alerts   +--------------+      |             | storages            | Downsample &
-| Alertmanager | <----------| Thanos       | <----|             | query metrics       | compact blocks
-| (*)          |            | Ruler        |      |             |                     |
-+--------------+            +--------------+      |             \/                    |
-      ^                            |              |      +----------------+           |
-      | push alerts                +--------------|----> | Object Store   | <---------+
-      |                                           |      | (S3/GCS/etc)   |           |
-+------------------------------+                  |      +----------------+           |
-|+------------+  +------------+|                  |             ^
-|| Prometheus |->| Thanos     || <----------------+             |
-|| (*)        |<-| Sidecar (*)||    query                       | inspect
-|+------------+  +------------+|    metrics                     | blocks
-+------------------------------+                                |
-                                                         +--------------+
-                                                         | Thanos       |
-                                                         | Bucket Web   |
-                                                         +--------------+
-```
+![Architecture](https://docs.google.com/drawings/d/e/2PACX-1vSJd32gPh8-MC5Ko0-P-v1KQ0Xnxa0qmsVXowtkwVGlczGfVW-Vd415Y6F129zvh3y0vHLBZcJeZEoz/pub?w=960&h=720)
 
 > Note: Components marked with (*) are provided by external charts or services. This chart uses AWS S3 or compatible object storage (such as GCS, Azure Blob Storage) for long-term metric storage.
 
@@ -1661,39 +1625,6 @@ You can enable this initContainer by setting `volumePermissions.enabled` to `tru
 | `volumePermissions.image.pullPolicy`  | Init container volume-permissions image pull policy                                                                               | `IfNotPresent`             |
 | `volumePermissions.image.pullSecrets` | Specify docker-registry secret names as an array                                                                                  | `[]`                       |
 
-### Object Store Configuration
-
-This chart requires an object store (such as AWS S3, GCS, or Azure Blob Storage) for long-term metric storage. Configure the object store using the `objstoreConfig` parameter.
-
-Example for AWS S3:
-
-```yaml
-objstoreConfig: |-
-  type: s3
-  config:
-    bucket: your-thanos-bucket
-    region: us-east-1
-    access_key: YOUR_AWS_ACCESS_KEY
-    secret_key: YOUR_AWS_SECRET_KEY
-```
-
-> **Important**: For production environments, it's recommended to use Kubernetes Secrets to store credentials instead of putting them directly in values.yaml.
-
-Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
-
-```console
-helm install my-release --set query.replicaCount=2 <repo-name>/thanos
-```
-
-The above command install Thanos chart with 2 Thanos Query replicas.
-
-Alternatively, a YAML file that specifies the values for the parameters can be provided while installing the chart. For example,
-
-```console
-helm install my-release -f values.yaml <repo-name>/thanos
-```
-> **Tip**: You can use the default `values.yaml` file included in this chart as a starting point.
-
 ## Troubleshooting
 
 For troubleshooting issues, check the component logs:
@@ -1708,25 +1639,6 @@ kubectl logs -l app.kubernetes.io/component=storegateway
 # Compactor logs
 kubectl logs -l app.kubernetes.io/component=compactor
 ```
-
-Common issues:
-- **Object store connection errors**: Verify your `objstoreConfig` credentials and network connectivity
-- **ServiceMonitor not found**: Ensure Prometheus Operator CRDs are installed
-- **Resource constraints**: Check if pods are being evicted due to resource limits
-
-## Upgrading
-
-To upgrade the chart with the release name `my-release`:
-
-```console
-helm upgrade my-release <repo-name>/thanos
-```
-
-### Important Notes
-
-- Always review the [changelog](https://github.com/thanos-io/thanos/releases) for breaking changes
-- Backup your object store data before major upgrades
-- Test upgrades in a non-production environment first
 
 ## License
 

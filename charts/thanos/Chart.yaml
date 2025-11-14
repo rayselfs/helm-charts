@@ -2,16 +2,20 @@ apiVersion: v2
 name: thanos
 description: Managed Thanos deployment for compactor, query, query-frontend and storegateway components.
 type: application
-version: 0.1.4
+version: 0.1.5
 appVersion: 0.40.1
 maintainers:
   - name: rayselfs
     email: rayselfs@gmail.com
-    url: https://github.com/rayselfs
+home: https://thanos.io/
+icon: https://raw.githubusercontent.com/rayselfs/helm-charts/main/charts/thanos/icon.png
 keywords:
   - thanos
   - prometheus
   - metrics
   - observability
+  - monitoring
 sources:
   - https://github.com/thanos-io/thanos
+  - https://github.com/rayselfs/helm-charts
+annotations: {}

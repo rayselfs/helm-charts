@@ -33,6 +33,5 @@ jobs:
         uses: helm/chart-releaser-action@v1.7.0
         with:
           charts_dir: charts
-          packages_with_index: true  # Upload chart packages directly into publishing branch
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
