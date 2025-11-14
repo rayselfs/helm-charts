@@ -3,6 +3,31 @@ entries:
   thanos:
   - apiVersion: v2
     appVersion: 0.40.1
+    created: "2025-11-14T07:15:12.17062577Z"
+    description: Managed Thanos deployment for compactor, query, query-frontend and
+      storegateway components.
+    digest: 9126ee02ccc5a6c9c77f74159416489a6f562a3ca80ca09baecd1117e2319339
+    home: https://thanos.io/
+    icon: https://raw.githubusercontent.com/rayselfs/helm-charts/main/charts/thanos/icon.png
+    keywords:
+    - thanos
+    - prometheus
+    - metrics
+    - observability
+    - monitoring
+    maintainers:
+    - email: rayselfs@gmail.com
+      name: rayselfs
+    name: thanos
+    sources:
+    - https://github.com/thanos-io/thanos
+    - https://github.com/rayselfs/helm-charts
+    type: application
+    urls:
+    - https://github.com/rayselfs/helm-charts/releases/download/thanos-0.1.5/thanos-0.1.5.tgz
+    version: 0.1.5
+  - apiVersion: v2
+    appVersion: 0.40.1
     created: "2025-11-14T03:32:30.699552143Z"
     description: Managed Thanos deployment for compactor, query, query-frontend and
       storegateway components.
@@ -43,4 +68,4 @@ entries:
     urls:
     - thanos-0.1.3.tgz
     version: 0.1.3
-generated: "2025-11-14T03:32:30.6995663Z"
+generated: "2025-11-14T07:15:12.170643644Z"
