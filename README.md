@@ -12,18 +12,11 @@ This repository contains multiple Helm Charts for deploying various Kubernetes a
 
 ```bash
 # Add repository (replace with your actual repository URL)
-helm repo add <repo-name> <repo-url>
+helm repo add rayselfs https://rayselfs.github.io/helm-charts
 helm repo update
 
 # Install chart
-helm install <release-name> <repo-name>/<chart-name>
-```
-
-### Example: Install Thanos
-
-```bash
-helm repo add my-charts https://github.com/YOUR_ORG/helm-charts/releases/download/thanos-0.1.0/
-helm install thanos my-charts/thanos
+helm install thanos rayselfs/thanos
 ```
 
 ## 📁 Folder Structure
