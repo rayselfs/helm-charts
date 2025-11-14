@@ -11,7 +11,6 @@ This repository contains multiple Helm Charts for deploying various Kubernetes a
 ### Install Chart
 
 ```bash
-# Add repository (replace with your actual repository URL)
 helm repo add rayselfs https://rayselfs.github.io/helm-charts
 helm repo update
 
