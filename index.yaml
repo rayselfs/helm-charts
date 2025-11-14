@@ -3,6 +3,28 @@ entries:
   thanos:
   - apiVersion: v2
     appVersion: 0.40.1
+    created: "2025-11-14T03:32:30.699552143Z"
+    description: Managed Thanos deployment for compactor, query, query-frontend and
+      storegateway components.
+    digest: e0bcff4d48ffc7de840930a34feee6bbca14fe3260eb268ba3206b2f029e270e
+    keywords:
+    - thanos
+    - prometheus
+    - metrics
+    - observability
+    maintainers:
+    - email: rayselfs@gmail.com
+      name: rayselfs
+      url: https://github.com/rayselfs
+    name: thanos
+    sources:
+    - https://github.com/thanos-io/thanos
+    type: application
+    urls:
+    - thanos-0.1.4.tgz
+    version: 0.1.4
+  - apiVersion: v2
+    appVersion: 0.40.1
     created: "2025-11-13T10:46:14.150787278Z"
     description: Managed Thanos deployment for compactor, query, query-frontend and
       storegateway components.
@@ -21,4 +43,4 @@ entries:
     urls:
     - thanos-0.1.3.tgz
     version: 0.1.3
-generated: "2025-11-13T10:46:14.150796795Z"
+generated: "2025-11-14T03:32:30.6995663Z"
