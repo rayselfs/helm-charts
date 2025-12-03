@@ -58,6 +58,10 @@ spec:
             {{- end }}
             - name: DRY_RUN
               value: {{ .Values.dryRun | quote }}
+            {{- if .Values.snsTopicArn }}
+            - name: SNS_TOPIC_ARN
+              value: {{ .Values.snsTopicArn | quote }}
+            {{- end }}
             - name: CONFIG_PATH
               value: "/app/config/config.json"
             - name: SCHEDULE
