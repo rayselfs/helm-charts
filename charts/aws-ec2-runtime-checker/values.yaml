@@ -19,6 +19,29 @@ kind: Deployment
 #   "0 */6 * * *"   - Every 6 hours
 schedule: "0 * * * *"
 
+# -- CronJob specific configuration
+# Only applicable when kind is "CronJob"
+cronJob:
+  # -- Concurrency policy for CronJob
+  # - Allow: Allow concurrent executions
+  # - Forbid: Skip new execution if previous one is still running
+  # - Replace: Cancel currently running job and replace it with a new one
+  concurrencyPolicy: Forbid
+  # -- Number of failed jobs to keep in history
+  failedJobsHistoryLimit: 1
+  # -- Number of successful jobs to keep in history
+  successfulJobsHistoryLimit: 3
+  # -- Optional deadline in seconds for starting the job if it misses scheduled time
+  # If not set, missed executions are counted as failed ones
+  startingDeadlineSeconds: null
+  # -- Suspend the CronJob
+  # When true, the CronJob will not create any new jobs
+  suspend: false
+  # -- Time zone name for the schedule (Kubernetes 1.24+)
+  # Example: "America/New_York", "UTC", "Asia/Taipei"
+  # If not set, uses the controller's local time zone
+  timeZone: null
+
 # -- Container image configuration
 image:
   # -- Image repository

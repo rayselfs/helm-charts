@@ -22,6 +22,44 @@
       "pattern": "^[0-9*/-]+\\s+[0-9*/-]+\\s+[0-9*/-]+\\s+[0-9*/-]+\\s+[0-9*/-]+$",
       "default": "0 * * * *"
     },
+    "cronJob": {
+      "type": "object",
+      "description": "CronJob specific configuration. Only applicable when kind is CronJob",
+      "properties": {
+        "concurrencyPolicy": {
+          "type": "string",
+          "description": "Concurrency policy for CronJob",
+          "enum": ["Allow", "Forbid", "Replace"],
+          "default": "Forbid"
+        },
+        "failedJobsHistoryLimit": {
+          "type": "integer",
+          "description": "Number of failed jobs to keep in history",
+          "minimum": 0,
+          "default": 3
+        },
+        "successfulJobsHistoryLimit": {
+          "type": "integer",
+          "description": "Number of successful jobs to keep in history",
+          "minimum": 0,
+          "default": 3
+        },
+        "startingDeadlineSeconds": {
+          "type": ["integer", "null"],
+          "description": "Optional deadline in seconds for starting the job if it misses scheduled time",
+          "minimum": 0
+        },
+        "suspend": {
+          "type": "boolean",
+          "description": "Suspend the CronJob. When true, the CronJob will not create any new jobs",
+          "default": false
+        },
+        "timeZone": {
+          "type": ["string", "null"],
+          "description": "Time zone name for the schedule (Kubernetes 1.24+). Example: America/New_York, UTC, Asia/Taipei"
+        }
+      }
+    },
     "image": {
       "type": "object",
       "description": "Container image configuration",

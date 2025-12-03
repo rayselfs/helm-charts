@@ -7,6 +7,24 @@ metadata:
     {{- include "aws-ec2-runtime-checker.labels" . | nindent 4 }}
 spec:
   schedule: {{ .Values.schedule | quote }}
+  {{- if .Values.cronJob.concurrencyPolicy }}
+  concurrencyPolicy: {{ .Values.cronJob.concurrencyPolicy }}
+  {{- end }}
+  {{- if .Values.cronJob.failedJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit }}
+  {{- end }}
+  {{- if .Values.cronJob.successfulJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit }}
+  {{- end }}
+  {{- if .Values.cronJob.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.cronJob.startingDeadlineSeconds }}
+  {{- end }}
+  {{- if .Values.cronJob.suspend }}
+  suspend: {{ .Values.cronJob.suspend }}
+  {{- end }}
+  {{- if .Values.cronJob.timeZone }}
+  timeZone: {{ .Values.cronJob.timeZone | quote }}
+  {{- end }}
   jobTemplate:
     spec:
       template:
