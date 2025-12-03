@@ -1,0 +1,80 @@
+suite: test deployment
+templates:
+  - deployment.yaml
+tests:
+  - it: should create a Deployment when kind is Deployment
+    set:
+      kind: Deployment
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-aws-ec2-runtime-checker
+
+  - it: should set correct replicas
+    set:
+      kind: Deployment
+      replicaCount: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: should set environment variables correctly
+    set:
+      kind: Deployment
+      aws:
+        region: us-west-2
+      dryRun: false
+      schedule: "*/30 * * * *"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_REGION
+            value: us-west-2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DRY_RUN
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SCHEDULE
+            value: "*/30 * * * *"
+
+  - it: should enable leader election when configured
+    set:
+      kind: Deployment
+      leaderElection:
+        enabled: true
+        leaseName: test-lease
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LEADER_ELECTION_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LEASE_NAME
+            value: test-lease
+
+  - it: should mount config volume
+    set:
+      kind: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config-volume
+            mountPath: /app/config
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: config-volume
+            configMap:
+              name: RELEASE-NAME-aws-ec2-runtime-checker-config

@@ -1,0 +1,151 @@
+# Default values for aws-ec2-runtime-checker
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- Number of replicas to deploy
+# Only applicable when kind is "Deployment"
+# For high availability with leader election, set to 2 or more
+replicaCount: 1
+
+# -- Deployment kind: "Deployment" or "CronJob"
+# - Deployment: Runs continuously with internal cron scheduling
+# - CronJob: Kubernetes manages the scheduling
+kind: Deployment
+
+# -- Cron schedule expression (required for both Deployment and CronJob modes)
+# Examples:
+#   "0 * * * *"     - Every hour
+#   "*/30 * * * *"  - Every 30 minutes
+#   "0 */6 * * *"   - Every 6 hours
+schedule: "0 * * * *"
+
+# -- Container image configuration
+image:
+  # -- Image repository
+  repository: rayselfs/aws-ec2-runtime-checker
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Overrides the image tag (default is the chart appVersion)
+  tag: ""
+
+# -- Image pull secrets for private registries
+imagePullSecrets: []
+
+# -- Override the name of the chart
+nameOverride: ""
+
+# -- Override the full name of the release
+fullnameOverride: ""
+
+# -- Service account configuration
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  # For AWS IRSA (IAM Roles for Service Accounts), add:
+  # eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME
+  annotations: {}
+  # -- The name of the service account to use
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# -- Annotations to add to the pod
+podAnnotations: {}
+
+# -- Pod security context
+# @default -- See values.yaml
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+# -- Container security context
+# @default -- See values.yaml
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# -- Resource limits and requests
+# @default -- See values.yaml
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# -- Node selector for pod assignment
+nodeSelector: {}
+
+# -- Tolerations for pod assignment
+tolerations: []
+
+# -- Affinity rules for pod assignment
+affinity: {}
+
+# -- Leader election configuration
+# Required when kind is "Deployment" and replicaCount > 1
+# Ensures only one replica actively processes checks
+leaderElection:
+  # -- Enable leader election
+  enabled: false
+  # -- Name of the lease resource
+  # If empty, defaults to "ec2-checker-leader"
+  leaseName: ""
+
+# -- Pod Disruption Budget configuration
+# Recommended for production deployments with replicaCount > 1
+pdb:
+  # -- Create a PodDisruptionBudget
+  create: false
+  # -- Minimum number of pods that must be available
+  minAvailable: 1
+  # -- Maximum number of pods that can be unavailable
+  # Use either minAvailable or maxUnavailable, not both
+  # maxUnavailable: 1
+
+# -- AWS configuration
+aws:
+  # -- AWS region where EC2 instances are located
+  region: "us-east-1"
+  # -- AWS Access Key ID (optional, use IRSA instead for EKS)
+  # Only use if not using IAM Roles for Service Accounts (IRSA)
+  # accessKeyId: ""
+  # -- AWS Secret Access Key (optional, use IRSA instead for EKS)
+  # Only use if not using IAM Roles for Service Accounts (IRSA)
+  # secretAccessKey: ""
+
+# -- SNS topic ARN for notifications (optional)
+# If set, sends notifications before terminating instances
+# Example: "arn:aws:sns:us-east-1:123456789012:ec2-checker-alerts"
+snsTopicArn: ""
+
+# -- Dry run mode
+# When true, instances are NOT terminated, only logged
+# Set to false in production to enable actual termination
+dryRun: true
+
+# -- Target EC2 instance types and their maximum runtime thresholds
+# Each entry specifies an instance type and its allowed runtime in hours
+targets:
+  # -- Example: t2.micro instances with 24 hour limit
+  - instanceType: "t2.micro"
+    maxRuntimeHours: 24
+  # -- Example: t3.micro instances with 48 hour limit
+  - instanceType: "t3.micro"
+    maxRuntimeHours: 48
+  # Add more instance types as needed:
+  # - instanceType: "c5.large"
+  #   maxRuntimeHours: 72
+  # - instanceType: "m5.xlarge"
+  #   maxRuntimeHours: 168  # 1 week

@@ -1,0 +1,18 @@
+apiVersion: v2
+name: aws-ec2-runtime-checker
+description: AWS EC2 Long-Running Checker
+type: application
+version: 0.1.0
+appVersion: "v0.1.4"
+maintainers:
+  - name: rayselfs
+    email: rayselfs@gmail.com
+icon: https://raw.githubusercontent.com/rayselfs/helm-charts/main/charts/aws-ec2-runtime-checker/icon.png
+keywords:
+  - aws
+  - ec2
+  - observability
+  - monitoring
+sources:
+  - https://github.com/rayselfs/aws-ec2-runtime-checker
+annotations: {}
