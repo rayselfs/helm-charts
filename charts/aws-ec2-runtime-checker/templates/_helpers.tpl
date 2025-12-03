@@ -54,9 +54,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the service account to use
 */}}
 {{- define "aws-ec2-runtime-checker.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "aws-ec2-runtime-checker.fullname" .) .Values.serviceAccount.name }}
+{{- if .Values.serviceAccount.name }}
+{{- .Values.serviceAccount.name }}
 {{- else }}
-{{- default "default" .Values.serviceAccount.name }}
+{{- .Release.Name }}
 {{- end }}
 {{- end }}

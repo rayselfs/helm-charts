@@ -10,23 +10,20 @@ A Helm chart for deploying the AWS EC2 Runtime Checker on Kubernetes. This tool 
 
 ## Installing the Chart
 
-### Add the Helm repository
+To install the chart with the release name `aws-ec2-runtime-checker`:
 
 ```bash
-helm repo add aws-ec2-runtime-checker https://rayselfs.github.io/aws-ec2-runtime-checker
+helm repo add rayselfs https://rayselfs.github.io/helm-charts
 helm repo update
-```
 
-### Install the chart
-
-```bash
-helm install aws-ec2-runtime-checker aws-ec2-runtime-checker/aws-ec2-runtime-checker
+# Install the chart
+helm install aws-ec2-runtime-checker rayselfs/aws-ec2-runtime-checker
 ```
 
 ### Install with custom values
 
 ```bash
-helm install aws-ec2-runtime-checker aws-ec2-runtime-checker/aws-ec2-runtime-checker \
+helm install aws-ec2-runtime-checker rayselfs/aws-ec2-runtime-checker \
   --set aws.region=us-west-2 \
   --set dryRun=false \
   --set 'targets[0].instanceType=t3.micro' \
@@ -127,7 +124,7 @@ See [values.yaml](values.yaml) for the full list of configuration options.
 ### Example: Setting Parameters via CLI
 
 ```bash
-helm install aws-ec2-runtime-checker aws-ec2-runtime-checker/aws-ec2-runtime-checker \
+helm install aws-ec2-runtime-checker rayselfs/aws-ec2-runtime-checker \
   --set aws.region=us-west-2 \
   --set dryRun=false \
   --set replicaCount=2 \
@@ -136,10 +133,12 @@ helm install aws-ec2-runtime-checker aws-ec2-runtime-checker/aws-ec2-runtime-che
   --set 'targets[0].maxRuntimeHours=24'
 ```
 
-### Example: Production Configuration
+### Deployment Configuration
+
+Use Deployment mode for continuous operation with internal cron scheduling. Recommended for high availability scenarios.
 
 ```yaml
-# production-values.yaml
+# deployment-values.yaml
 kind: Deployment
 replicaCount: 2
 schedule: "*/30 * * * *" # Every 30 minutes
@@ -181,11 +180,42 @@ serviceAccount:
     eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/ec2-checker-role
 ```
 
-Install with:
+### CronJob Configuration
 
-```bash
-helm install aws-ec2-runtime-checker aws-ec2-runtime-checker/aws-ec2-runtime-checker \
-  -f production-values.yaml
+Use CronJob mode for Kubernetes-managed scheduling. Recommended for simpler deployments without high availability requirements.
+
+```yaml
+# cronjob-values.yaml
+kind: CronJob
+schedule: "*/30 * * * *" # Every 30 minutes
+
+aws:
+  region: us-east-1
+
+dryRun: false # Enable actual termination
+
+snsTopicArn: "arn:aws:sns:us-east-1:123456789012:ec2-alerts"
+
+targets:
+  - instanceType: "t2.micro"
+    maxRuntimeHours: 24
+  - instanceType: "t3.micro"
+    maxRuntimeHours: 48
+  - instanceType: "c5.large"
+    maxRuntimeHours: 72
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/ec2-checker-role
 ```
 
 ## AWS IAM Permissions
@@ -321,7 +351,7 @@ helm uninstall aws-ec2-runtime-checker
 ## Upgrading the Chart
 
 ```bash
-helm upgrade aws-ec2-runtime-checker aws-ec2-runtime-checker/aws-ec2-runtime-checker \
+helm upgrade aws-ec2-runtime-checker rayselfs/aws-ec2-runtime-checker \
   -f values.yaml
 ```
 
