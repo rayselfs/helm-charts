@@ -5,6 +5,7 @@ This repository contains multiple Helm Charts for deploying various Kubernetes a
 ## 📦 Available Charts
 
 - **thanos** - Managed Thanos deployment for compactor, query, query-frontend and storegateway components
+- **aws-ec2-runtime-checker** - AWS EC2 Long-Running Checker
 
 ## 🚀 Quick Start
 
