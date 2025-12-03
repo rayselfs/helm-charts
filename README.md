@@ -5,6 +5,7 @@ This repository contains multiple Helm Charts for deploying various Kubernetes a
 ## 📦 Available Charts
 
 - **thanos** - Managed Thanos deployment for compactor, query, query-frontend and storegateway components
+- **aws-ec2-runtime-checker** - AWS EC2 Long-Running Checker
 
 ## 🚀 Quick Start
 
@@ -26,7 +27,7 @@ This repository uses a unified structure where all Helm Charts are located under
 helm-charts/
 ├── .github/
 │   └── workflows/
-│       └── release.yml          # GitHub Actions automation workflow
+│       └── release.yml          # GitHub Actions workflow (lint + release)
 ├── charts/                       # All Helm Charts directory
 │   ├── thanos/                  # Thanos Helm Chart
 │   │   ├── Chart.yaml
@@ -98,7 +99,7 @@ sources:
 
 ### Automatic Publishing (Recommended)
 
-When you push code to the `main` branch, GitHub Actions will **automatically detect modified charts** and read the version number from `Chart.yaml` to publish.
+When you push code to the `main` branch (with changes to `Chart.yaml` files), GitHub Actions will **automatically detect modified charts** and publish them.
 
 **Publishing Process:**
 
@@ -114,14 +115,16 @@ git add charts/thanos/
 git commit -m "Update thanos chart to v0.1.1"
 git push origin main
 
-# 4. GitHub Actions will automatically detect and publish
+# 4. GitHub Actions will automatically:
+#    - Run lint checks
+#    - Detect and publish the chart
 ```
 
 **Important Notes:**
 - ✅ The workflow will **automatically detect** which charts have been modified
 - ✅ Version numbers are **read** from the `version` field in `Chart.yaml` (not automatically updated)
 - ✅ You need to **manually update** the version number in Chart.yaml before committing
-- ✅ Multiple modified charts can be published simultaneously (parallel processing)
+- ✅ **Lint checks run first**: Charts must pass lint validation before release
 - ⚠️ If a release with the same version already exists, it will be automatically skipped
 
 **Example: Publishing Multiple Charts Simultaneously**
@@ -134,7 +137,7 @@ git add charts/thanos/ charts/prometheus/
 git commit -m "Update multiple charts"
 git push origin main
 
-# The workflow will automatically detect and publish both charts in parallel
+# The workflow will automatically detect and publish both charts
 ```
 
 ### Manual Trigger
@@ -146,38 +149,38 @@ git push origin main
 
 ## 🔧 Workflow Description
 
-The GitHub Actions workflow consists of two jobs:
+The GitHub Actions workflow consists of two sequential jobs:
 
-### Job 1: detect-charts
+### Job 1: lint-test
 1. Checkout code (with full git history)
-2. Scan all charts under the `charts/` directory
-3. For each chart:
-   - Read `name` and `version` from `Chart.yaml`
-   - Check if release tag `<name>-<version>` already exists
-   - If the tag doesn't exist, add it to the release list
-4. Output the list of charts to be released (JSON format)
+2. Set up Helm and chart-testing tools
+3. Detect changed charts using `ct list-changed`
+4. Run `ct lint` on all changed charts
+5. **Only proceed to release if lint passes**
 
-### Job 2: release (Matrix Strategy)
-For each modified chart, execute in parallel:
+### Job 2: release
+Runs only after `lint-test` succeeds:
 
-1. Validate chart directory and Chart.yaml exist (located at `charts/<chart-name>/`)
-2. **Read version number from Chart.yaml** (not automatically updated)
-3. Check if release tag already exists
-4. Run `helm lint` check
-5. Package chart as `.tgz` file
-6. Create GitHub Release and upload the packaged chart
+1. Checkout code (with full git history)
+2. Configure Git user
+3. Run `helm/chart-releaser-action` which:
+   - Scans all charts in the `charts/` directory
+   - Detects charts with version changes (by comparing Chart.yaml with git history)
+   - Checks if a GitHub Release already exists for each chart version
+   - Packages charts as `.tgz` files
+   - Creates GitHub Releases and uploads packaged charts
+   - Updates `index.yaml` in the `gh-pages` branch
    - Tag format: `<chart-name>-<version>` (e.g., `thanos-0.1.1`)
 
 ### Detection Logic
 
-The workflow will:
+The workflow uses `helm/chart-releaser-action` which:
 
-- **Directly scan all charts**: Iterate through all subdirectories under `charts/`
-- **Check Chart.yaml**: Verify each directory contains a valid `Chart.yaml` file
-- **Read version information**: Read `name` and `version` fields from `Chart.yaml`
-- **Check existing releases**: Use GitHub CLI to check if release `<name>-<version>` already exists
-- **Filter published versions**: If a release with that version already exists, skip that chart
-- **Support first-time publishing**: Can correctly handle the first publish even without git history
+- **Scans all charts**: Automatically detects all charts in the `charts/` directory
+- **Version detection**: Compares Chart.yaml versions with git history to detect changes
+- **Duplicate prevention**: Skips charts if a GitHub Release with the same version already exists
+- **Automatic packaging**: Creates `.tgz` packages and uploads to GitHub Releases
+- **Index management**: Automatically updates `index.yaml` in the `gh-pages` branch
 
 ## 🔗 Artifact Hub Integration
 
@@ -224,9 +227,17 @@ After the first workflow run, verify you can access:
 
 Artifact Hub will automatically sync and index your charts from GitHub Pages.
 
-## 📚 Detailed Documentation
+## 🔍 Workflow Triggers
 
-- [GitHub Actions Workflow Documentation](.github/workflows/README.md) - Details about the automated publishing process
+The workflow is triggered when:
+- **Push to `main` branch**: Only if files under `charts/**/Chart.yaml` are modified
+- **Manual dispatch**: Can be manually triggered from GitHub Actions UI
+
+The workflow will **not** trigger for changes to:
+- `README.md` files
+- `.github/**` files
+- `LICENSE` file
+- `.gitignore` file
 
 ## 🤝 Contributing
 
