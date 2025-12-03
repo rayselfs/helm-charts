@@ -237,6 +237,10 @@
         "secretAccessKey": {
           "type": "string",
           "description": "AWS Secret Access Key (optional, use IRSA instead for EKS)"
+        },
+        "vpcId": {
+          "type": "string",
+          "description": "VPC ID to filter EC2 instances (optional). If set, only instances in this VPC will be checked"
         }
       }
     },
@@ -259,20 +263,31 @@
     },
     "targets": {
       "type": "array",
-      "description": "Target EC2 instance types and their maximum runtime thresholds",
+      "description": "Target EC2 instance types and their maximum runtime thresholds. Each entry can filter by instanceType, name pattern (supports wildcard *), tags, or any combination",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["instanceType", "maxRuntimeHours"],
+        "required": ["maxRuntimeHours"],
         "properties": {
           "instanceType": {
             "type": "string",
-            "description": "EC2 instance type (e.g., t2.micro, t3.micro, c5.large)"
+            "description": "Filter by EC2 instance type (optional, e.g., t2.micro, t3.micro, c5.large)"
+          },
+          "name": {
+            "type": "string",
+            "description": "Filter by instance name (Name tag, supports wildcard matching with *). Example: my-instance-*, prod-*"
+          },
+          "tags": {
+            "type": "object",
+            "description": "Filter by tags (key-value pairs, all must match). Example: {\"Environment\": \"dev\", \"Team\": \"backend\"}",
+            "additionalProperties": {
+              "type": "string"
+            }
           },
           "maxRuntimeHours": {
-            "type": "integer",
+            "type": "number",
             "description": "Maximum runtime in hours before instance should be terminated",
-            "minimum": 1
+            "minimum": 0.1
           }
         }
       }

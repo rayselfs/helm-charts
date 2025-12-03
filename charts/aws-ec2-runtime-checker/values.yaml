@@ -147,6 +147,9 @@ aws:
   # -- AWS Secret Access Key (optional, use IRSA instead for EKS)
   # Only use if not using IAM Roles for Service Accounts (IRSA)
   # secretAccessKey: ""
+  # -- VPC ID to filter EC2 instances (optional)
+  # If set, only instances in this VPC will be checked
+  # vpcId: ""
 
 # -- SNS topic ARN for notifications (optional)
 # If set, sends notifications before terminating instances
@@ -159,16 +162,22 @@ snsTopicArn: ""
 dryRun: true
 
 # -- Target EC2 instance types and their maximum runtime thresholds
-# Each entry specifies an instance type and its allowed runtime in hours
+# Each entry specifies filtering criteria and maximum runtime in hours
 targets:
-  # -- Example: t2.micro instances with 24 hour limit
+  # -- Example: Filter by instance type only
   - instanceType: "t2.micro"
     maxRuntimeHours: 24
-  # -- Example: t3.micro instances with 48 hour limit
+  # -- Example: Filter by instance type and name pattern (supports wildcard *)
   - instanceType: "t3.micro"
+    name: "dev-*"
     maxRuntimeHours: 48
-  # Add more instance types as needed:
+  # -- Example: Filter by tags (all tags must match)
+  - tags:
+      Environment: "dev"
+      Team: "backend"
+    maxRuntimeHours: 72
+  # -- Example: Combine instance type and tags
   # - instanceType: "c5.large"
-  #   maxRuntimeHours: 72
-  # - instanceType: "m5.xlarge"
+  #   tags:
+  #     Environment: "prod"
   #   maxRuntimeHours: 168  # 1 week
