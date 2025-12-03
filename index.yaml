@@ -3,6 +3,27 @@ entries:
   aws-ec2-runtime-checker:
   - apiVersion: v2
     appVersion: v0.1.4
+    created: "2025-12-03T07:43:17.922013675Z"
+    description: AWS EC2 Long-Running Checker
+    digest: 03ab3355c9d0a84058f9f1bea11b4a440dfedc5eb04ebae88231be07c5e35065
+    icon: https://raw.githubusercontent.com/rayselfs/helm-charts/main/charts/aws-ec2-runtime-checker/icon.png
+    keywords:
+    - aws
+    - ec2
+    - observability
+    - monitoring
+    maintainers:
+    - email: rayselfs@gmail.com
+      name: rayselfs
+    name: aws-ec2-runtime-checker
+    sources:
+    - https://github.com/rayselfs/aws-ec2-runtime-checker
+    type: application
+    urls:
+    - https://github.com/rayselfs/helm-charts/releases/download/aws-ec2-runtime-checker-0.1.2/aws-ec2-runtime-checker-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
+    appVersion: v0.1.4
     created: "2025-12-03T07:11:59.777745135Z"
     description: AWS EC2 Long-Running Checker
     digest: 4608ea479c94681521045b86f9229a7e13c5a6cba8465be100e736aec809edb3
@@ -119,4 +140,4 @@ entries:
     urls:
     - https://github.com/rayselfs/helm-charts/releases/download/thanos-0.1.3/thanos-0.1.3.tgz
     version: 0.1.3
-generated: "2025-12-03T07:11:59.777761589Z"
+generated: "2025-12-03T07:43:17.922036888Z"
